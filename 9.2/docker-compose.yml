@@ -1,0 +1,45 @@
+version: '3.4'
+
+services:
+  mariadb:
+    image: docker.io/bitnami/mariadb:10.6
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_USER=bn_myapp
+      - MARIADB_DATABASE=bitnami_myapp
+  myapp:
+    image: docker.io/amyluo/docker_php_redis_laravel:9.2
+    ports:
+      - target: 8000
+        published: 8000
+        protocol: tcp
+        mode: host
+    environment:
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USERNAME=bn_myapp
+      - DB_DATABASE=bitnami_myapp
+    volumes:
+      - ./my-project:/app
+    depends_on:
+      - mariadb
+
+  redis-json:
+    image: docker.io/redislabs/rejson:2.0.11
+    container_name: redis-json
+    ports:
+      - target: 6379
+        published: 6380
+        protocol: tcp
+        mode: host
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - redis_json_data:/data
+
+volumes:
+  mariadb_dbdata:
+    name: mariadb_dbdata
+  redis_json_data:
+    name: redis_json_data
